@@ -7,27 +7,22 @@
 */
 
 document.addEventListener("DOMContentLoaded", function () {
-
   // Mobile nav toggle
   const navToggle = document.querySelector(".nav-toggle");
   const nav = document.querySelector(".nav");
   navToggle && navToggle.addEventListener("click", () => {
-    if (nav.style.display === "flex") nav.style.display = "none";
-    else nav.style.display = "flex";
+    nav.style.display = nav.style.display === "flex" ? "none" : "flex";
   });
 
-  // Smooth scroll for nav links
+  // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener("click", function (e) {
       const target = document.querySelector(this.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     });
   });
 
-  // Rotating testimonials
+  // Testimonials
   (function rotateTestimonials() {
     const blocks = document.querySelectorAll(".testimonial");
     const clientLabel = document.getElementById("testimonial-client");
@@ -35,58 +30,32 @@ document.addEventListener("DOMContentLoaded", function () {
     let idx = 0;
     const update = () => {
       blocks.forEach((b, i) => b.classList.toggle("active", i === idx));
-      const active = blocks[idx];
-      clientLabel.textContent = active.getAttribute("data-client") || "";
+      clientLabel.textContent = blocks[idx].getAttribute("data-client") || "";
       idx = (idx + 1) % blocks.length;
     };
     update();
-    setInterval(update, 4500); // change every 4.5 seconds
+    setInterval(update, 4500);
   })();
 
-  // Contact form (Web3Forms) using fetch
+  // Contact form
   const form = document.getElementById("contactForm");
   const successBox = document.getElementById("formSuccess");
   const errorBox = document.getElementById("formError");
-
   if (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      successBox.hidden = true;
-      errorBox.hidden = true;
-
+      successBox.hidden = true; errorBox.hidden = true;
       const url = "https://api.web3forms.com/submit";
       const formData = new FormData(form);
       const submitBtn = form.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Sending...";
-
-      fetch(url, {
-        method: "POST",
-        body: formData
-      })
-      .then(async (res) => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Send Message";
-
-        if (res.ok) {
-          successBox.hidden = false;
-          errorBox.hidden = true;
-          form.reset();
-          setTimeout(() => { successBox.hidden = true; }, 6000);
-        } else {
-          let data;
-          try { data = await res.json(); } catch (_) { data = await res.text(); }
-          console.error("Web3Forms error:", data);
-          successBox.hidden = true;
-          errorBox.hidden = false;
-        }
-      }).catch((err) => {
-        console.error("Fetch error:", err);
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Send Message";
-        successBox.hidden = true;
-        errorBox.hidden = false;
-      });
+      submitBtn.disabled = true; submitBtn.textContent = "Sending...";
+      fetch(url, { method: "POST", body: formData })
+        .then(async res => {
+          submitBtn.disabled = false; submitBtn.textContent = "Send Message";
+          if (res.ok) { successBox.hidden = false; form.reset(); setTimeout(() => { successBox.hidden = true; }, 6000); }
+          else { errorBox.hidden = false; console.error(await res.text()); }
+        })
+        .catch(err => { errorBox.hidden = false; submitBtn.disabled = false; submitBtn.textContent = "Send Message"; console.error(err); });
     });
   }
 
@@ -94,12 +63,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const y = new Date().getFullYear();
   document.getElementById("year") && (document.getElementById("year").textContent = y);
 
-  // Modal for TOS & Privacy Policy
-  const modal = document.getElementById("modal");
-  const modalText = document.getElementById("modal-text");
-  const closeModal = document.querySelector(".modal-close");
-  const tosLink = document.getElementById("tos-link");
-  const privacyLink = document.getElementById("privacy-link");
+  // TOS / Privacy modal
+  const tosLink = document.getElementById("tosLink");
+  const privacyLink = document.getElementById("privacyLink");
+  const tosModal = document.getElementById("tosModal");
+  const tosModalContent = document.getElementById("tosModalContent");
+  const modalClose = document.querySelector(".modal-close");
 
   const tosContent = `
 <h2>Terms of Service</h2>
@@ -192,19 +161,8 @@ const privacyContent = `
 <p>We may update this Privacy Policy periodically. Any changes will be posted on this page with an updated effective date.</p>
 `;
 
-  tosLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    modalText.innerHTML = tosContent;
-    modal.style.display = "flex";
-  });
-
-  privacyLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    modalText.innerHTML = privacyContent;
-    modal.style.display = "flex";
-  });
-
-  closeModal.addEventListener("click", () => { modal.style.display = "none"; });
-  window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
-
+ tosLink && tosLink.addEventListener("click", e => { e.preventDefault(); tosModalContent.innerHTML = tosContent; tosModal.style.display = "flex"; });
+  privacyLink && privacyLink.addEventListener("click", e => { e.preventDefault(); tosModalContent.innerHTML = privacyContent; tosModal.style.display = "flex"; });
+  modalClose && modalClose.addEventListener("click", () => tosModal.style.display = "none");
+  window.addEventListener("click", e => { if (e.target === tosModal) tosModal.style.display = "none"; });
 });
